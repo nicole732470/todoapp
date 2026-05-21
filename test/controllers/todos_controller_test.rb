@@ -47,11 +47,52 @@ class TodosControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "toggle high_priority responds with turbo_stream" do
-    skip "TodosController#toggle_high_priority not implemented yet"
-
-    patch "/todos/#{@todo.id}/toggle_high_priority", as: :turbo_stream
+    patch toggle_high_priority_todo_url(@todo), as: :turbo_stream
 
     assert_response :success
     assert_equal "text/vnd.turbo-stream.html", response.media_type
+  end
+
+  test "toggle high_priority flips high_priority in database" do
+    assert @todo.high_priority
+
+    patch toggle_high_priority_todo_url(@todo), as: :turbo_stream
+
+    assert_not @todo.reload.high_priority
+  end
+
+  test "toggle high_priority html redirects to index" do
+    patch toggle_high_priority_todo_url(@todo)
+
+    assert_redirected_to todos_path
+  end
+
+  test "toggle high_priority turbo_stream replaces todo dom id" do
+    patch toggle_high_priority_todo_url(@todo), as: :turbo_stream
+
+    assert_match "turbo-stream", response.body
+    assert_match dom_id(@todo), response.body
+  end
+
+  test "toggle high_priority off removes high priority text from stream" do
+    patch toggle_high_priority_todo_url(@todo), as: :turbo_stream
+
+    assert_no_match "High priority", response.body
+  end
+
+  test "toggle high_priority on includes high priority text in stream" do
+    todo = todos(:two)
+
+    patch toggle_high_priority_todo_url(todo), as: :turbo_stream
+
+    assert_match "High priority", response.body
+  end
+
+  test "index shows high priority badge for high priority todo only" do
+    get todos_url
+
+    assert_response :success
+    assert_select ".todo--high-priority", count: 1
+    assert_select ".todo__badge", text: "High priority", count: 1
   end
 end

@@ -1,5 +1,5 @@
 class TodosController < ApplicationController
-  before_action :set_todo, only: %i[ show edit update destroy ]
+  before_action :set_todo, only: %i[ show edit update destroy toggle_high_priority ]
   
   # GET /todos or /todos.json
   def index
@@ -57,6 +57,15 @@ class TodosController < ApplicationController
     end
   end
 
+  def toggle_high_priority
+    @todo.update!(high_priority: !@todo.high_priority)
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to todos_path }
+    end
+  end
+
   def hello
     respond_to do |format|
       format.html { render :hello }
@@ -72,7 +81,7 @@ class TodosController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def todo_params
-      params.require(:todo).permit(:description, :due_date, :done)
+      params.require(:todo).permit(:description, :due_date, :done, :high_priority)
     end
 end
 

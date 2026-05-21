@@ -1,4 +1,8 @@
-<div id="<%= dom_id todo %>">
+<div id="<%= dom_id todo %>" class="<%= "todo--high-priority" if todo.high_priority? %>">
+  <% if todo.high_priority? %>
+    <span class="todo__badge">High priority</span>
+  <% end %>
+
   <div>
     <strong>Description:</strong>
     <%= todo.description %>
@@ -14,4 +18,9 @@
     <%= todo.due_date %>
   </div>
 
+  <div>
+    <%= button_to(todo.high_priority? ? "Remove high priority" : "Mark high priority",
+                  toggle_high_priority_todo_path(todo),
+                  method: :patch) %>
+  </div>
 </div>
